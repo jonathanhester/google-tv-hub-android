@@ -63,11 +63,6 @@ public class AccountsActivity extends Activity {
     private static final String TAG = "AccountsActivity";
 
     /**
-     * Cookie name for authorization.
-     */
-    private static final String AUTH_COOKIE_NAME = "SACSID";
-
-    /**
      * The selected position in the ListView of accounts.
      */
     private int mAccountSelectedPosition = 0;
@@ -123,45 +118,16 @@ public class AccountsActivity extends Activity {
      * Sets up the 'connect' screen content.
      */
     private void setConnectScreenContent() {
-        List<String> accounts = getGoogleAccounts();
-        if (accounts.size() == 0) {
-            // Show a dialog and invoke the "Add Account" activity if requested
-            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-            builder.setMessage(R.string.needs_account);
-            builder.setPositiveButton(R.string.add_account, new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int which) {
-                    startActivity(new Intent(Settings.ACTION_ADD_ACCOUNT));
-                }
-            });
-            builder.setNegativeButton(R.string.skip, new DialogInterface.OnClickListener() {
-                public void onClick(DialogInterface dialog, int which) {
-                    finish();
-                }
-            });
-            builder.setIcon(android.R.drawable.stat_sys_warning);
-            builder.setTitle(R.string.attention);
-            builder.show();
-        } else {
-            final ListView listView = (ListView) findViewById(R.id.select_account);
-            listView.setAdapter(new ArrayAdapter<String>(mContext, R.layout.account, accounts));
-            listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-            listView.setItemChecked(mAccountSelectedPosition, true);
-
-            final Button connectButton = (Button) findViewById(R.id.connect);
-            connectButton.setOnClickListener(new OnClickListener() {
-                public void onClick(View v) {
-                    // Set "connecting" status
-                    SharedPreferences prefs = Util.getSharedPreferences(mContext);
-                    prefs.edit().putString(Util.CONNECTION_STATUS, Util.CONNECTING).commit();
-                    // Get account name
-                    mAccountSelectedPosition = listView.getCheckedItemPosition();
-                    TextView account = (TextView) listView.getChildAt(mAccountSelectedPosition);
-                    // Register
-                    register((String) account.getText());
-                    finish();
-                }
-            });
-        }
+        final Button connectButton = (Button) findViewById(R.id.connect);
+        connectButton.setOnClickListener(new OnClickListener() {
+            public void onClick(View v) {
+                // Set "connecting" status
+                SharedPreferences prefs = Util.getSharedPreferences(mContext);
+                prefs.edit().putString(Util.CONNECTION_STATUS, Util.CONNECTING).commit();
+                register();
+                finish();
+            }
+        });
     }
 
     /**
@@ -210,120 +176,20 @@ public class AccountsActivity extends Activity {
      * 
      * @param accountName a String containing a Google account name
      */
-    private void register(final String accountName) {
+    private void register() {
+    	final String accountName = getAccountName();
         // Store the account name in shared preferences
         final SharedPreferences prefs = Util.getSharedPreferences(mContext);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString(Util.ACCOUNT_NAME, accountName);
-        editor.remove(Util.AUTH_COOKIE);
         editor.remove(Util.DEVICE_REGISTRATION_ID);
         editor.commit();
 
-        // Obtain an auth token and register
-        final AccountManager mgr = AccountManager.get(mContext);
-        Account[] accts = mgr.getAccountsByType("com.google");
-        for (Account acct : accts) {
-            final Account account = acct;
-            if (account.name.equals(accountName)) {
-                if (Util.isDebug(mContext)) {
-                    // Use a fake cookie for the dev mode app engine server
-                    // The cookie has the form email:isAdmin:userId
-                    // We set the userId to be the same as the email
-                    String authCookie = "dev_appserver_login=" + accountName + ":false:"
-                            + accountName;
-                    prefs.edit().putString(Util.AUTH_COOKIE, authCookie).commit();
-                    C2DMessaging.register(mContext, Setup.SENDER_ID);
-                } else {
-                    // Get the auth token from the AccountManager and convert
-                    // it into a cookie for the appengine server
-                    final Activity activity = this;
-                    mgr.getAuthToken(account, "ah", null, activity, new AccountManagerCallback<Bundle>() {
-                        public void run(AccountManagerFuture<Bundle> future) {
-                            String authToken = getAuthToken(future);
-                            // Ensure the token is not expired by invalidating it and
-                            // obtaining a new one
-                            mgr.invalidateAuthToken(account.type, authToken);
-                            mgr.getAuthToken(account, "ah", null, activity, new AccountManagerCallback<Bundle>() {
-                                public void run(AccountManagerFuture<Bundle> future) {
-                                    String authToken = getAuthToken(future);
-                                    // Convert the token into a cookie for future use
-                                    String authCookie = getAuthCookie(authToken);
-                                    Editor editor = prefs.edit();
-                                    editor.putString(Util.AUTH_COOKIE, authCookie);
-                                    editor.commit();
-                                    C2DMessaging.register(mContext, Setup.SENDER_ID);
-                                }
-                            }, null);
-                        }
-                    }, null);
-                }
-                break;
-            }
-        }
+        C2DMessaging.register(mContext, Setup.SENDER_ID);
+    }
+    
+    private String getAccountName() {
+    	return "hester";
     }
 
-    private String getAuthToken(AccountManagerFuture<Bundle> future) {
-        try {
-            Bundle authTokenBundle = future.getResult();
-            String authToken = authTokenBundle.get(AccountManager.KEY_AUTHTOKEN).toString();
-            return authToken;
-        } catch (Exception e) {
-            Log.w(TAG, "Got Exception " + e);
-            return null;
-        }
-    }
-
-    // Utility Methods
-
-    /**
-     * Retrieves the authorization cookie associated with the given token. This
-     * method should only be used when running against a production appengine
-     * backend (as opposed to a dev mode server).
-     */
-    private String getAuthCookie(String authToken) {
-        DefaultHttpClient httpClient = new DefaultHttpClient();
-        try {
-            // Get SACSID cookie
-            httpClient.getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, false);
-            String uri = Setup.PROD_URL + "/_ah/login?continue=http://localhost/&auth=" + authToken;
-            HttpGet method = new HttpGet(uri);
-
-            HttpResponse res = httpClient.execute(method);
-            StatusLine statusLine = res.getStatusLine();
-            int statusCode = statusLine.getStatusCode();
-            Header[] headers = res.getHeaders("Set-Cookie");
-            if (statusCode != 302 || headers.length == 0) {
-                return null;
-            }
-
-            for (Cookie cookie : httpClient.getCookieStore().getCookies()) {
-                if (AUTH_COOKIE_NAME.equals(cookie.getName())) {
-                    return AUTH_COOKIE_NAME + "=" + cookie.getValue();
-                }
-            }
-        } catch (IOException e) {
-            Log.w(TAG, "Got IOException " + e);
-            Log.w(TAG, Log.getStackTraceString(e));
-        } finally {
-            httpClient.getParams().setBooleanParameter(ClientPNames.HANDLE_REDIRECTS, true);
-        }
-
-        return null;
-    }
-
-    /**
-     * Returns a list of registered Google account names. If no Google accounts
-     * are registered on the device, a zero-length list is returned.
-     */
-    private List<String> getGoogleAccounts() {
-        ArrayList<String> result = new ArrayList<String>();
-        Account[] accounts = AccountManager.get(mContext).getAccounts();
-        for (Account account : accounts) {
-            if (account.type.equals("com.google")) {
-                result.add(account.name);
-            }
-        }
-
-        return result;
-    }
 }

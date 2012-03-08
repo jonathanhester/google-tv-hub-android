@@ -68,7 +68,6 @@ public class DeviceRegistrar {
         req.fire(new Receiver<Void>() {
             private void clearPreferences(SharedPreferences.Editor editor) {
                 editor.remove(Util.ACCOUNT_NAME);
-                editor.remove(Util.AUTH_COOKIE);
                 editor.remove(Util.DEVICE_REGISTRATION_ID);
             }
 

@@ -76,10 +76,13 @@ public class GtvhubActivity extends Activity {
             SharedPreferences prefs = Util.getSharedPreferences(mContext);
             prefs.edit().putString(Util.CONNECTION_STATUS, connectionStatus).commit();
 
-            // Display a notification
-            Util.generateNotification(mContext, String.format(message, accountName));
+            registered();
         }
     };
+    
+    private void registered() {
+    	
+    }
 
     /**
      * Begins the activity.
@@ -100,9 +103,11 @@ public class GtvhubActivity extends Activity {
         SharedPreferences prefs = Util.getSharedPreferences(mContext);
         String connectionStatus = prefs.getString(Util.CONNECTION_STATUS, Util.DISCONNECTED);
         if (Util.DISCONNECTED.equals(connectionStatus)) {
+        	setScreenContent(R.layout.main);
             startActivity(new Intent(this, AccountsActivity.class));
+        } else {
+        	setScreenContent(R.layout.main);
         }
-        setScreenContent(R.layout.hello_world);
     }
 
     /**
@@ -126,7 +131,7 @@ public class GtvhubActivity extends Activity {
     // Manage UI Screens
 
     private void setHelloWorldScreenContent() {
-        setContentView(R.layout.hello_world);
+        setContentView(R.layout.main);
 
         final TextView helloWorld = (TextView) findViewById(R.id.hello_world);
         final Button sayHelloButton = (Button) findViewById(R.id.say_hello);
@@ -175,7 +180,7 @@ public class GtvhubActivity extends Activity {
     private void setScreenContent(int screenId) {
         setContentView(screenId);
         switch (screenId) {
-            case R.layout.hello_world:
+            case R.layout.main:
                 setHelloWorldScreenContent();
                 break;
         }

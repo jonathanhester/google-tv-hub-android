@@ -56,11 +56,6 @@ public class Util {
     public static final String ACCOUNT_NAME = "accountName";
 
     /**
-     * Key for auth cookie name in shared preferences.
-     */
-    public static final String AUTH_COOKIE = "authCookie";
-
-    /**
      * Key for connection status in shared preferences.
      */
     public static final String CONNECTION_STATUS = "connectionStatus";
@@ -158,7 +153,7 @@ public class Util {
         T requestFactory = RequestFactorySource.create(factoryClass);
 
         SharedPreferences prefs = getSharedPreferences(context);
-        String authCookie = prefs.getString(Util.AUTH_COOKIE, null);
+        String authCookie = null;
 
         String uriString = Util.getBaseUrl(context) + RF_METHOD;
         URI uri;

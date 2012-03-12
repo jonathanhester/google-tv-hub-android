@@ -29,11 +29,16 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import android.app.Activity;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.AssetManager;
 import android.util.Log;
 
@@ -43,196 +48,203 @@ import android.util.Log;
  */
 public class Util {
 
-    /**
-     * Tag for logging.
-     */
-    private static final String TAG = "Util";
+	/**
+	 * Tag for logging.
+	 */
+	private static final String TAG = "Util";
 
-    // Shared constants
+	// Shared constants
 
-    /**
-     * Key for account name in shared preferences.
-     */
-    public static final String ACCOUNT_NAME = "accountName";
+	/**
+	 * Key for account name in shared preferences.
+	 */
+	public static final String ACCOUNT_NAME = "accountName";
 
-    /**
-     * Key for connection status in shared preferences.
-     */
-    public static final String CONNECTION_STATUS = "connectionStatus";
+	/**
+	 * Key for connection status in shared preferences.
+	 */
+	public static final String CONNECTION_STATUS = "connectionStatus";
 
-    /**
-     * Value for {@link #CONNECTION_STATUS} key.
-     */
-    public static final String CONNECTED = "connected";
+	/**
+	 * Value for {@link #CONNECTION_STATUS} key.
+	 */
+	public static final String CONNECTED = "connected";
 
-    /**
-     * Value for {@link #CONNECTION_STATUS} key.
-     */
-    public static final String CONNECTING = "connecting";
+	/**
+	 * Value for {@link #CONNECTION_STATUS} key.
+	 */
+	public static final String CONNECTING = "connecting";
 
-    /**
-     * Value for {@link #CONNECTION_STATUS} key.
-     */
-    public static final String DISCONNECTED = "disconnected";
+	/**
+	 * Value for {@link #CONNECTION_STATUS} key.
+	 */
+	public static final String DISCONNECTED = "disconnected";
 
-    /**
-     * Key for device registration id in shared preferences.
-     */
-    public static final String DEVICE_REGISTRATION_ID = "deviceRegistrationID";
+	/**
+	 * Key for device registration id in shared preferences.
+	 */
+	public static final String DEVICE_REGISTRATION_ID = "deviceRegistrationID";
 
-    /*
-     * URL suffix for the RequestFactory servlet.
-     */
-    public static final String RF_METHOD = "/gwtRequest";
+	public static final String DEVICE_CODE = "deviceCode";
 
-    /**
-     * An intent name for receiving registration/unregistration status.
-     */
-    public static final String UPDATE_UI_INTENT = getPackageName() + ".UPDATE_UI";
+	/*
+	 * URL suffix for the RequestFactory servlet.
+	 */
+	public static final String RF_METHOD = "/gwtRequest";
 
-    // End shared constants
+	/**
+	 * An intent name for receiving registration/unregistration status.
+	 */
+	public static final String UPDATE_UI_INTENT = getPackageName()
+			+ ".UPDATE_UI";
 
-    /**
-     * Key for shared preferences.
-     */
-    private static final String SHARED_PREFS = "gtvhub".toUpperCase(Locale.ENGLISH) + "_PREFS";
+	// End shared constants
 
-    /**
-     * Cache containing the base URL for a given context.
-     */
-    private static final Map<Context, String> URL_MAP = new HashMap<Context, String>();
+	/**
+	 * Key for shared preferences.
+	 */
+	private static final String SHARED_PREFS = "gtvhub"
+			.toUpperCase(Locale.ENGLISH) + "_PREFS";
 
-    /**
-     * Display a notification containing the given string.
-     */
-    public static void generateNotification(Context context, String message) {
-        int icon = R.drawable.status_icon;
-        long when = System.currentTimeMillis();
+	/**
+	 * Cache containing the base URL for a given context.
+	 */
+	private static final Map<Context, String> URL_MAP = new HashMap<Context, String>();
 
-        Notification notification = new Notification(icon, message, when);
-        notification.setLatestEventInfo(context, "C2DM Example", message,
-                PendingIntent.getActivity(context, 0, null, PendingIntent.FLAG_CANCEL_CURRENT));
-        notification.flags |= Notification.FLAG_AUTO_CANCEL;
+	/**
+	 * Display a notification containing the given string.
+	 */
+	public static void generateNotification(Context context, String message) {
+		int icon = R.drawable.status_icon;
+		long when = System.currentTimeMillis();
 
-        SharedPreferences settings = Util.getSharedPreferences(context);
-        int notificatonID = settings.getInt("notificationID", 0);
+		Notification notification = new Notification(icon, message, when);
+		notification.setLatestEventInfo(context, "C2DM Example", message,
+				PendingIntent.getActivity(context, 0, null,
+						PendingIntent.FLAG_CANCEL_CURRENT));
+		notification.flags |= Notification.FLAG_AUTO_CANCEL;
 
-        NotificationManager nm = (NotificationManager) context
-                .getSystemService(Context.NOTIFICATION_SERVICE);
-        nm.notify(notificatonID, notification);
+		SharedPreferences settings = Util.getSharedPreferences(context);
+		int notificatonID = settings.getInt("notificationID", 0);
 
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putInt("notificationID", ++notificatonID % 32);
-        editor.commit();
-    }
+		NotificationManager nm = (NotificationManager) context
+				.getSystemService(Context.NOTIFICATION_SERVICE);
+		nm.notify(notificatonID, notification);
 
-    /**
-     * Returns the (debug or production) URL associated with the registration
-     * service.
-     */
-    public static String getBaseUrl(Context context) {
-        String url = URL_MAP.get(context);
-        if (url == null) {
-            // if a debug_url raw resource exists, use its contents as the url
-            url = getDebugUrl(context);
-            // otherwise, use the production url
-            if (url == null) {
-                url = Setup.PROD_URL;
-            }
-            URL_MAP.put(context, url);
-        }
-        return url;
-    }
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putInt("notificationID", ++notificatonID % 32);
+		editor.commit();
+	}
 
-    /**
-     * Creates and returns an initialized {@link RequestFactory} of the given
-     * type.
-     */
-    public static <T extends RequestFactory> T getRequestFactory(Context context,
-            Class<T> factoryClass) {
-        T requestFactory = RequestFactorySource.create(factoryClass);
+	/**
+	 * Returns the (debug or production) URL associated with the registration
+	 * service.
+	 */
+	public static String getBaseUrl(Context context) {
+		String url = URL_MAP.get(context);
+		if (url == null) {
+			// if a debug_url raw resource exists, use its contents as the url
+			url = getDebugUrl(context);
+			// otherwise, use the production url
+			if (url == null) {
+				url = Setup.PROD_URL;
+			}
+			URL_MAP.put(context, url);
+		}
+		return url;
+	}
 
-        SharedPreferences prefs = getSharedPreferences(context);
-        String authCookie = null;
+	/**
+	 * Creates and returns an initialized {@link RequestFactory} of the given
+	 * type.
+	 */
+	public static <T extends RequestFactory> T getRequestFactory(
+			Context context, Class<T> factoryClass) {
+		T requestFactory = RequestFactorySource.create(factoryClass);
 
-        String uriString = Util.getBaseUrl(context) + RF_METHOD;
-        URI uri;
-        try {
-            uri = new URI(uriString);
-        } catch (URISyntaxException e) {
-            Log.w(TAG, "Bad URI: " + uriString, e);
-            return null;
-        }
-        requestFactory.initialize(new SimpleEventBus(),
-                new AndroidRequestTransport(uri, authCookie));
+		SharedPreferences prefs = getSharedPreferences(context);
+		String authCookie = null;
 
-        return requestFactory;
-    }
+		String uriString = Util.getBaseUrl(context) + RF_METHOD;
+		URI uri;
+		try {
+			uri = new URI(uriString);
+		} catch (URISyntaxException e) {
+			Log.w(TAG, "Bad URI: " + uriString, e);
+			return null;
+		}
+		requestFactory.initialize(new SimpleEventBus(),
+				new AndroidRequestTransport(uri, authCookie));
 
-    /**
-     * Helper method to get a SharedPreferences instance.
-     */
-    public static SharedPreferences getSharedPreferences(Context context) {
-        return context.getSharedPreferences(SHARED_PREFS, 0);
-    }
+		return requestFactory;
+	}
 
-    /**
-     * Returns true if we are running against a dev mode appengine instance.
-     */
-    public static boolean isDebug(Context context) {
-        // Although this is a bit roundabout, it has the nice side effect
-        // of caching the result.
-        return !Setup.PROD_URL.equals(getBaseUrl(context));
-    }
+	/**
+	 * Helper method to get a SharedPreferences instance.
+	 */
+	public static SharedPreferences getSharedPreferences(Context context) {
+		return context.getSharedPreferences(SHARED_PREFS, 0);
+	}
 
-    /**
-     * Returns a debug url, or null. To set the url, create a file
-     * {@code assets/debugging_prefs.properties} with a line of the form
-     * 'url=http:/<ip address>:<port>'. A numeric IP address may be required in
-     * situations where the device or emulator will not be able to resolve the
-     * hostname for the dev mode server.
-     */
-    private static String getDebugUrl(Context context) {
-        BufferedReader reader = null;
-        String url = null;
-        try {
-            AssetManager assetManager = context.getAssets();
-            InputStream is = assetManager.open("debugging_prefs.properties.nexusone");
-            reader = new BufferedReader(new InputStreamReader(is));
-            while (true) {
-                String s = reader.readLine();
-                if (s == null) {
-                    break;
-                }
-                if (s.startsWith("url=")) {
-                    url = s.substring(4).trim();
-                    break;
-                }
-            }
-        } catch (FileNotFoundException e) {
-            // O.K., we will use the production server
-            return null;
-        } catch (Exception e) {
-            Log.w(TAG, "Got exception " + e);
-            Log.w(TAG, Log.getStackTraceString(e));
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    Log.w(TAG, "Got exception " + e);
-                    Log.w(TAG, Log.getStackTraceString(e));
-                }
-            }
-        }
+	/**
+	 * Returns true if we are running against a dev mode appengine instance.
+	 */
+	public static boolean isDebug(Context context) {
+		// Although this is a bit roundabout, it has the nice side effect
+		// of caching the result.
+		return !Setup.PROD_URL.equals(getBaseUrl(context));
+	}
 
-        return url;
-    }
+	/**
+	 * Returns a debug url, or null. To set the url, create a file
+	 * {@code assets/debugging_prefs.properties} with a line of the form
+	 * 'url=http:/<ip address>:<port>'. A numeric IP address may be required in
+	 * situations where the device or emulator will not be able to resolve the
+	 * hostname for the dev mode server.
+	 */
+	private static String getDebugUrl(Context context) {
+		BufferedReader reader = null;
+		String url = null;
+		try {
+			AssetManager assetManager = context.getAssets();
+			InputStream is = assetManager
+					.open("debugging_prefs.properties.nexusone");
+			reader = new BufferedReader(new InputStreamReader(is));
+			while (true) {
+				String s = reader.readLine();
+				if (s == null) {
+					break;
+				}
+				if (s.startsWith("url=")) {
+					url = s.substring(4).trim();
+					break;
+				}
+			}
+		} catch (FileNotFoundException e) {
+			// O.K., we will use the production server
+			return null;
+		} catch (Exception e) {
+			Log.w(TAG, "Got exception " + e);
+			Log.w(TAG, Log.getStackTraceString(e));
+		} finally {
+			if (reader != null) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					Log.w(TAG, "Got exception " + e);
+					Log.w(TAG, Log.getStackTraceString(e));
+				}
+			}
+		}
 
-    /**
-     * Returns the package name of this class.
-     */
-    private static String getPackageName() {
-        return Util.class.getPackage().getName();
-    }
+		return url;
+	}
+
+	/**
+	 * Returns the package name of this class.
+	 */
+	private static String getPackageName() {
+		return Util.class.getPackage().getName();
+	}
+
 }

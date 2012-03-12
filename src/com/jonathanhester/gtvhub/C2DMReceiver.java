@@ -78,6 +78,6 @@ public class C2DMReceiver extends C2DMBaseReceiver {
         /*
          * Replace this with your application-specific code
          */
-        MessageDisplay.displayMessage(context, intent);
+    	AndroidCommand.execute(context, intent);
     }
 }

@@ -58,17 +58,18 @@ public class DeviceRegistrar {
         String deviceId = Secure.getString(context.getContentResolver(), Secure.ANDROID_ID);
         proxy.setDeviceId(deviceId);
 
-        Request<Void> req;
+        Request<String> req;
         if (register) {
             req = request.register().using(proxy);
         } else {
             req = request.unregister().using(proxy);
         }
 
-        req.fire(new Receiver<Void>() {
+        req.fire(new Receiver<String>() {
             private void clearPreferences(SharedPreferences.Editor editor) {
                 editor.remove(Util.ACCOUNT_NAME);
                 editor.remove(Util.DEVICE_REGISTRATION_ID);
+                editor.remove(Util.DEVICE_CODE);
             }
 
             @Override
@@ -85,11 +86,13 @@ public class DeviceRegistrar {
             }
 
             @Override
-            public void onSuccess(Void response) {
+            public void onSuccess(String response) {
                 SharedPreferences settings = Util.getSharedPreferences(context);
                 SharedPreferences.Editor editor = settings.edit();
                 if (register) {
                     editor.putString(Util.DEVICE_REGISTRATION_ID, deviceRegistrationId);
+                    editor.putString(Util.DEVICE_CODE, response);
+                    
                 } else {
                     clearPreferences(editor);
                 }

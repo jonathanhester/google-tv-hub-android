@@ -76,12 +76,26 @@ public class GtvhubActivity extends Activity {
             SharedPreferences prefs = Util.getSharedPreferences(mContext);
             prefs.edit().putString(Util.CONNECTION_STATUS, connectionStatus).commit();
 
-            registered();
+            showCode();
         }
     };
     
-    private void registered() {
-    	
+    private String getDeviceCode() {
+        SharedPreferences prefs = Util.getSharedPreferences(mContext);
+        String code = prefs.getString(Util.DEVICE_CODE, null);
+    	return code;
+    }
+    
+    private void showLoading() {
+    	final TextView helloWorld = (TextView) findViewById(R.id.hello_world_info);
+    	helloWorld.setText(R.string.contacting_server);
+    }
+    
+    private void showCode() {
+    	final TextView title = (TextView) findViewById(R.id.hello_world_info);
+    	title.setText(R.string.code_loaded);
+    	final TextView code = (TextView) findViewById(R.id.hello_world);
+    	code.setText(getDeviceCode());
     }
 
     /**
@@ -102,11 +116,15 @@ public class GtvhubActivity extends Activity {
 
         SharedPreferences prefs = Util.getSharedPreferences(mContext);
         String connectionStatus = prefs.getString(Util.CONNECTION_STATUS, Util.DISCONNECTED);
+        setScreenContent(R.layout.main);
         if (Util.DISCONNECTED.equals(connectionStatus)) {
-        	setScreenContent(R.layout.main);
             startActivity(new Intent(this, AccountsActivity.class));
         } else {
-        	setScreenContent(R.layout.main);
+        	if (getDeviceCode() == null) {
+        		showLoading();
+        	} else {
+        		showCode();
+        	}
         }
     }
 
@@ -134,6 +152,7 @@ public class GtvhubActivity extends Activity {
         setContentView(R.layout.main);
 
         final TextView helloWorld = (TextView) findViewById(R.id.hello_world);
+/*
         final Button sayHelloButton = (Button) findViewById(R.id.say_hello);
         sayHelloButton.setOnClickListener(new OnClickListener() {
             public void onClick(View v) {
@@ -172,6 +191,7 @@ public class GtvhubActivity extends Activity {
                 }.execute();
             }
         });
+        */
     }
 
     /**

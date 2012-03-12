@@ -28,33 +28,6 @@
         android:text="@string/connect_text"
         android:textSize="16dip"/>
 
-    <TextView
-        android:id="@+id/select_text"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/connect_text"
-        android:text="@string/select_account"
-        android:textColor="#ffffff"
-        android:layout_margin="5dip"/>
-
-    <View
-        android:id="@+id/divider"
-        android:layout_width="fill_parent"
-        android:layout_height="1dip"
-        android:layout_below="@id/select_text"
-        android:background="#808080" />
-
-    <ListView
-        android:id="@+id/select_account"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/divider"
-        android:layout_margin="10dip"
-        android:divider="#FFFFFF"
-        android:textSize="16dip"
-        android:background="@android:color/transparent"
-        android:cacheColorHint="@android:color/transparent">
-    </ListView>
 
     <TextView
         android:layout_width="fill_parent"

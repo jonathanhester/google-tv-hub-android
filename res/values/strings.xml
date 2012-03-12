@@ -8,7 +8,7 @@
     <string name="add_account">Add account...</string>
 
     <!--  Name of the application in the launcher [CHAR LIMIT=NONE] -->
-    <string name="app_name">Gtvhub</string>
+    <string name="app_name">Hub</string>
 
     <!-- Dialog title text [CHAR LIMIT=NONE] -->
     <string name="attention">Attention</string>
@@ -17,7 +17,7 @@
     <string name="connect">Connect</string>
 
     <!-- Message text for "Connect" screen [CHAR LIMIT=NONE] -->
-    <string name="connect_text">This application requests permission to connect your mobile device to the cloud.</string>
+    <string name="connect_text">This application requests permission to connect your device to the cloud.</string>
 
     <!-- Header text for "Connect" screen [CHAR LIMIT=NONE] -->
     <string name="connect_to_the_cloud">Connect To The Cloud</string>
@@ -26,7 +26,7 @@
     <string name="connected_to_the_cloud">Connected To The Cloud</string>
 
     <!-- Message text [CHAR LIMIT=NONE] -->
-    <string name="contacting_server">Contacting server...</string>
+    <string name="contacting_server">Waiting for server to return code...</string>
 
     <!-- Button text [CHAR LIMIT=NONE] -->
     <string name="disconnect">Disconnect</string>
@@ -41,7 +41,7 @@
     <string name="do_you_want_to_disconnect">Do you want to disconnect?</string>
 
     <!-- Initial "hello, world" informational message [CHAR LIMIT=NONE] -->
-    <string name="hello_world_info_text">Press the \"Say Hello\" button to receive a message from the App Engine server.</string>
+    <string name="hello_world_info_text"></string>
 
     <!-- Initial "hello, world" response message [CHAR LIMIT=NONE] -->
     <string name="hello_world_text"></string>
@@ -67,4 +67,6 @@
     <!-- Notification message [CHAR LIMIT=NONE] -->
     <string name="unregistration_succeeded">Unegistered %1$s for C2DM messaging.</string>
 
+    <string name="code_loaded">Go to http://gtvhub.appspot.com/ and add this TV by entering the code below.  Once the TV is added, you can push links to the TV from this website</string>
+    
 </resources>

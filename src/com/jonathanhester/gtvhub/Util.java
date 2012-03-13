@@ -208,7 +208,7 @@ public class Util {
 		try {
 			AssetManager assetManager = context.getAssets();
 			InputStream is = assetManager
-					.open("debugging_prefs.properties.nexusone");
+					.open("");
 			reader = new BufferedReader(new InputStreamReader(is));
 			while (true) {
 				String s = reader.readLine();

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 
 public class AndroidCommand {
 	
@@ -27,7 +28,11 @@ public class AndroidCommand {
 		Uri uri = Uri.parse(uriString);
 		Intent intent = new Intent(Intent.ACTION_VIEW, uri);
 		intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		context.startActivity(intent);
+		try {
+			context.startActivity(intent);
+		} catch (Exception e) {
+			Log.d("", "Invalid link");
+		}
 	}
 
 }

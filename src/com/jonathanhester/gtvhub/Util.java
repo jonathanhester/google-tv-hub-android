@@ -52,6 +52,12 @@ public class Util {
 	 * Tag for logging.
 	 */
 	private static final String TAG = "Util";
+	
+	private static final String ENVIRONMENT_PROD = "prod";
+	private static final String ENVIRONMENT_LOCAL = "local1";
+	
+	private static final String ENVIRONMENT = ENVIRONMENT_PROD;
+	//private static final String ENVIRONMENT = ENVIRONMENT_LOCAL;
 
 	// Shared constants
 
@@ -144,7 +150,9 @@ public class Util {
 		String url = URL_MAP.get(context);
 		if (url == null) {
 			// if a debug_url raw resource exists, use its contents as the url
-			url = getDebugUrl(context);
+			if (getEnvironment() == ENVIRONMENT_LOCAL) {
+				url = getDebugUrl(context);
+			}
 			// otherwise, use the production url
 			if (url == null) {
 				url = Setup.PROD_URL;
@@ -153,7 +161,11 @@ public class Util {
 		}
 		return url;
 	}
-
+	
+	public static String getEnvironment() {
+		return ENVIRONMENT;
+	}
+	
 	/**
 	 * Creates and returns an initialized {@link RequestFactory} of the given
 	 * type.
@@ -208,7 +220,7 @@ public class Util {
 		try {
 			AssetManager assetManager = context.getAssets();
 			InputStream is = assetManager
-					.open("");
+					.open("debugging_prefs.properties.nexusone");
 			reader = new BufferedReader(new InputStreamReader(is));
 			while (true) {
 				String s = reader.readLine();
